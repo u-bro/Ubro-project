@@ -10,8 +10,6 @@ class User(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     inviter_id: Mapped[int] = mapped_column(BigInteger, nullable=True, default=None)
 
-    gpu_lvl: Mapped[int] = mapped_column(Integer, default=1)
-
     created_at: Mapped[TIMESTAMP | None] = mapped_column(TIMESTAMP, nullable=True, default=func.now())
     last_active_at: Mapped[TIMESTAMP | None] = mapped_column(TIMESTAMP, nullable=True, default=func.now())
 
@@ -26,4 +24,3 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     transactions = relationship("Transaction", back_populates="user")
-    gpu_storages = relationship("UserGpuStorage", back_populates="user")
