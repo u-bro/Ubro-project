@@ -17,6 +17,8 @@ from app.backend.routers.commission import commission_router
 from app.backend.routers.driver_location import driver_location_router
 from app.backend.routers.chat_message import chat_message_router
 from app.backend.routers.transaction import transaction_router
+from app.backend.routers.websocket import websocket_router
+from app.backend.routers.documents import documents_router
 # Optional debug router is disabled for smoke run
 
 app = FastAPI()
@@ -43,6 +45,8 @@ app.include_router(commission_router, tags=['Commissions'], prefix=API_PREFIX)
 app.include_router(driver_location_router, tags=['DriverLocations'], prefix=API_PREFIX)
 app.include_router(chat_message_router, tags=['ChatMessages'], prefix=API_PREFIX)
 app.include_router(transaction_router, tags=['Transactions'], prefix=API_PREFIX)
+app.include_router(websocket_router, tags=['WebSocket'], prefix=API_PREFIX)
+app.include_router(documents_router, tags=['Documents'], prefix=API_PREFIX)
 # app.include_router(pg_errs_router, tags=["Debug"])
 
 
