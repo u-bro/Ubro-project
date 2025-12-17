@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import Request
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
 from app.backend.routers.base import BaseRouter
 from app.crud.transaction import transaction_crud
 from app.schemas.transaction import TransactionSchema, TransactionCreate, TransactionUpdate
@@ -31,8 +32,11 @@ class TransactionRouter(BaseRouter):
     async def update_item(self, request: Request, item_id: int, body: TransactionUpdate) -> TransactionSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> TransactionSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 transaction_router = TransactionRouter().router

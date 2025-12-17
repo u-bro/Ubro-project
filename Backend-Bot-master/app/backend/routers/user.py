@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from urllib.parse import parse_qsl
 
 from app.crud import user_crud
@@ -27,7 +27,7 @@ class UserRouter(BaseRouter):
     async def get_by_id(self, request: Request, id: int) -> UserSchema:
         return await super().get_by_id(request, id)
 
-    async def get_by_telegram_id_or_create(self, request: Request, create_obj: UserSchemaCreate) -> UserSchema:
+    async def get_by_telegram_id_or_create(self, request: Request, id: int, create_obj: UserSchemaCreate) -> UserSchema:
         return await user_crud.get_by_id_or_create(request.state.session, create_obj)
 
     async def create(self, request: Request, create_obj: UserSchemaCreate) -> UserSchema:
@@ -41,7 +41,10 @@ class UserRouter(BaseRouter):
 
     async def update_user_balance(self, request: Request, user_id: int) -> BalanceUpdateResponse:
         data = dict(parse_qsl(request.headers.get("Authorization", {}), strict_parsing=True))
-        return await user_crud.update_user_balance(request.state.session, data.get('user_id') or user_id)
+        result = await user_crud.update_user_balance(request.state.session, data.get('user_id') or user_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="User not found or balance update function not available")
+        return result
 
 
 user_router = UserRouter(user_crud, "/users").router

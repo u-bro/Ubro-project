@@ -1,17 +1,36 @@
-```$env:DB_HOST="localhost";``` 
-```$env:DB_HOST="185.4.75.245";``` 
-```$env:DB_HOST="localhost"; uvicorn app.backend.main:app```
-```$env:DB_HOST="localhost"; alembic revision --autogenerate -m "database_creation"```
-```alembic upgrade head```
+## Тесты
 
-DEV: ```docker run -d --name my-postgres -e POSTGRES_USER=vlad -e POSTGRES_PASSWORD=odfjpskofnpknvkrsngljapokn -e POSTGRES_DB=mining -p 5432:5432 postgres:latest```
-DEV: ```docker exec -it DEV_POSTGRES psql "host=localhost port=5432 dbname=mining user=vlad password='odfjpskofnpknvkrsngljapokn'"```
+- Предусловия: установлен Docker/Compose, Poetry. Все команды выполнять из каталога `Backend-Bot-master/Backend-Bot-master`.
 
-```pytest .\tests -s -v```
-ACTUAL: ```pytest --cov=app --cov-report=html:ztest tests -v```
+- Установка зависимостей:
+```bash
+poetry install --no-interaction
+```
 
+- Прогон тестов (поднимается тестовый Postgres на 5443, применяются миграции):
+```bash
+poetry run pytest -q
+```
 
-```docker build -f Dockerfile-back -t back-image .```
-```docker run --name back-container -d back-image```
+- Генерация JUnit-отчёта:
+```bash
+mkdir -p scripts/reports
+poetry run pytest -q --junitxml=scripts/reports/junit.xml
+```
+
+- Прогон отдельных файлов:
+```bash
+poetry run pytest tests_api_v1/test_health.py -vv
+poetry run pytest tests_api_v1/test_users.py -vv
+```
+
+- Smoke-тест всех эндпоинтов по OpenAPI (нужен запущенный сервис):
+```bash
+poetry run python scripts/api_smoke_test.py http://localhost:8080
+```
+
+Примечания:
+- Тестовая БД из `docker-compose-tests.yml` использует порт 5443 (локальные dev-контейнеры не мешают).
+- Если нужно вручную остановить тестовую БД: `docker compose -f docker-compose-tests.yml down`.
 
 

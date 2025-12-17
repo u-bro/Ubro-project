@@ -1,5 +1,5 @@
 from typing import Optional, List
-from fastapi import Request, Query
+from fastapi import Request, Query, HTTPException
 from pydantic import TypeAdapter
 from app.backend.routers.base import BaseRouter
 from app.crud.ride import ride_crud
@@ -32,7 +32,10 @@ class RideRouter(BaseRouter):
         return await self.model_crud.update(request.state.session, ride_id, body)
 
     async def change_status(self, request: Request, ride_id: int, body: RideStatusChangeRequest) -> RideSchema:
-        return await self.model_crud.change_status(request.state.session, ride_id, body)
+        result = await self.model_crud.change_status(request.state.session, ride_id, body)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Ride not found or status transition not allowed")
+        return result
 
 
 ride_router = RideRouter().router

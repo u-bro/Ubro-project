@@ -10,7 +10,7 @@ class ChatMessageCreate(BaseModel):
     receiver_id: Optional[int] = None
     message_type: Optional[str] = None
     attachments: Optional[dict[str, Any]] = None
-    is_moderated: Optional[bool] = None
+    is_moderated: Optional[bool] = False
     edited_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 

@@ -9,7 +9,7 @@ class DriverLocationCreate(BaseModel):
     longitude: Optional[float] = None
     accuracy_m: Optional[int] = None
     provider: Optional[str] = None
-    is_online: Optional[bool] = None
+    is_online: Optional[bool] = False
     last_seen_at: Optional[datetime] = None
 
 

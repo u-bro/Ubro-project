@@ -10,7 +10,7 @@ from app.schemas.user import BalanceUpdateResponse
 
 
 class CrudUser(CrudBase):
-    async def update_user_balance(self, session: AsyncSession, user_id: int) -> bool:
+    async def update_user_balance(self, session: AsyncSession, user_id: int) -> BalanceUpdateResponse | None:
         stmt = text("SELECT update_user_balance(:user_id)").params(user_id=user_id)
         
         try: 
@@ -19,7 +19,16 @@ class CrudUser(CrudBase):
             logger.exception("DB error in update_user_balance")
             raise
         
-        return BalanceUpdateResponse.model_validate_json(result) if result else None
+        if result is None:
+            return None
+        # result is a Row or scalar - convert to dict for validation
+        if hasattr(result, '_mapping'):
+            return BalanceUpdateResponse.model_validate(dict(result._mapping))
+        elif isinstance(result, dict):
+            return BalanceUpdateResponse.model_validate(result)
+        else:
+            # If it's a single value from the function, wrap it
+            return BalanceUpdateResponse(success=bool(result))
 
     
 

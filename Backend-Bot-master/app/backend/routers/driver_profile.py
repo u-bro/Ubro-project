@@ -1,6 +1,8 @@
 from typing import List
-from fastapi import Request
+from fastapi import Request, HTTPException
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from app.backend.routers.base import BaseRouter
 from app.crud.driver_profile import driver_profile_crud
 from app.schemas.driver_profile import DriverProfileSchema, DriverProfileCreate, DriverProfileUpdate
@@ -26,13 +28,24 @@ class DriverProfileRouter(BaseRouter):
         return await super().get_by_id(request, item_id)
 
     async def create_item(self, request: Request, body: DriverProfileCreate) -> DriverProfileSchema:
-        return await self.model_crud.create(request.state.session, body)
+        try:
+            return await self.model_crud.create(request.state.session, body)
+        except IntegrityError as e:
+            await request.state.session.rollback()
+            if "unique" in str(e.orig).lower() or "duplicate" in str(e.orig).lower():
+                raise HTTPException(status_code=409, detail="Driver profile for this user already exists")
+            if "foreign key" in str(e.orig).lower():
+                raise HTTPException(status_code=422, detail="Referenced user does not exist")
+            raise HTTPException(status_code=422, detail=str(e.orig))
 
     async def update_item(self, request: Request, item_id: int, body: DriverProfileUpdate) -> DriverProfileSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> DriverProfileSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 driver_profile_router = DriverProfileRouter().router

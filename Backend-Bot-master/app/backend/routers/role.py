@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import Request
+from fastapi import Request, HTTPException
 from pydantic import TypeAdapter
 from app.backend.routers.base import BaseRouter
 from app.crud.role import role_crud
@@ -31,8 +31,11 @@ class RoleRouter(BaseRouter):
     async def update_role(self, request: Request, item_id: int, body: RoleUpdate) -> RoleSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_role(self, request: Request, item_id: int) -> RoleSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_role(self, request: Request, item_id: int):
+        result = await self.model_crud.delete(request.state.session, item_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Role not found")
+        return result
 
 
 role_router = RoleRouter().router

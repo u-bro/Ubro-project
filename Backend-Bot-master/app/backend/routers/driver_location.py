@@ -1,6 +1,8 @@
 from typing import List
-from fastapi import Request
+from fastapi import Request, HTTPException
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from app.backend.routers.base import BaseRouter
 from app.crud.driver_location import driver_location_crud
 from app.schemas.driver_location import DriverLocationSchema, DriverLocationCreate, DriverLocationUpdate
@@ -26,13 +28,22 @@ class DriverLocationRouter(BaseRouter):
         return await super().get_by_id(request, item_id)
 
     async def create_item(self, request: Request, body: DriverLocationCreate) -> DriverLocationSchema:
-        return await self.model_crud.create(request.state.session, body)
+        try:
+            return await self.model_crud.create(request.state.session, body)
+        except IntegrityError as e:
+            await request.state.session.rollback()
+            if "foreign key" in str(e.orig).lower():
+                raise HTTPException(status_code=422, detail="Referenced driver profile does not exist")
+            raise HTTPException(status_code=422, detail=str(e.orig))
 
     async def update_item(self, request: Request, item_id: int, body: DriverLocationUpdate) -> DriverLocationSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> DriverLocationSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 driver_location_router = DriverLocationRouter().router

@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import Request
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
 from app.backend.routers.base import BaseRouter
 from app.crud.chat_message import chat_message_crud
 from app.schemas.chat_message import ChatMessageSchema, ChatMessageCreate, ChatMessageUpdate
@@ -31,8 +32,11 @@ class ChatMessageRouter(BaseRouter):
     async def update_item(self, request: Request, item_id: int, body: ChatMessageUpdate) -> ChatMessageSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> ChatMessageSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 chat_message_router = ChatMessageRouter().router

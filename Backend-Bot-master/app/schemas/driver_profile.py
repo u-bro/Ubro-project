@@ -15,7 +15,7 @@ class DriverProfileCreate(BaseModel):
     license_issued_at: Optional[datetime] = None
     license_expires_at: Optional[datetime] = None
     experience_years: Optional[int] = None
-    approved: Optional[bool] = None
+    approved: Optional[bool] = False
     approved_by: Optional[int] = None
     approved_at: Optional[datetime] = None
     qualification_level: Optional[str] = None

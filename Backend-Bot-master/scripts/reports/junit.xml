@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="11" time="14.104" timestamp="2025-12-16T19:02:03.918352+02:00" hostname="LAPTOP-15IMC9LU"><testcase classname="tests_api_v1.test_health" name="test_health_ok" time="8.034" /><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/driver-profiles?page=1&amp;page_size=1]" time="0.061" /><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/driver-documents?page=1&amp;page_size=1]" time="0.036"><failure message="assert 500 in (200, 404)&#10; +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code">client = &lt;httpx.AsyncClient object at 0x7fc2077a3c20&gt;, path = '/api/v1/driver-documents?page=1&amp;page_size=1'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("path", [
+        "/api/v1/driver-profiles?page=1&amp;page_size=1",
+        "/api/v1/driver-documents?page=1&amp;page_size=1",
+        "/api/v1/phone-verifications?page=1&amp;page_size=1",
+        "/api/v1/commissions?page=1&amp;page_size=1",
+        "/api/v1/driver-locations?page=1&amp;page_size=1",
+        "/api/v1/chat-messages?page=1&amp;page_size=1",
+        "/api/v1/transactions?page=1&amp;page_size=1",
+    ])
+    async def test_smoke_list_endpoints(client, path):
+        r = await client.get(path)
+&gt;       assert r.status_code in (200, 404)
+E       assert 500 in (200, 404)
+E        +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code
+
+tests_api_v1/test_misc_groups.py:16: AssertionError</failure></testcase><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/phone-verifications?page=1&amp;page_size=1]" time="0.035" /><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/commissions?page=1&amp;page_size=1]" time="0.013"><failure message="assert 500 in (200, 404)&#10; +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code">client = &lt;httpx.AsyncClient object at 0x7fc206d1ee40&gt;, path = '/api/v1/commissions?page=1&amp;page_size=1'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("path", [
+        "/api/v1/driver-profiles?page=1&amp;page_size=1",
+        "/api/v1/driver-documents?page=1&amp;page_size=1",
+        "/api/v1/phone-verifications?page=1&amp;page_size=1",
+        "/api/v1/commissions?page=1&amp;page_size=1",
+        "/api/v1/driver-locations?page=1&amp;page_size=1",
+        "/api/v1/chat-messages?page=1&amp;page_size=1",
+        "/api/v1/transactions?page=1&amp;page_size=1",
+    ])
+    async def test_smoke_list_endpoints(client, path):
+        r = await client.get(path)
+&gt;       assert r.status_code in (200, 404)
+E       assert 500 in (200, 404)
+E        +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code
+
+tests_api_v1/test_misc_groups.py:16: AssertionError</failure></testcase><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/driver-locations?page=1&amp;page_size=1]" time="0.030" /><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/chat-messages?page=1&amp;page_size=1]" time="0.010"><failure message="assert 500 in (200, 404)&#10; +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code">client = &lt;httpx.AsyncClient object at 0x7fc206bff8c0&gt;, path = '/api/v1/chat-messages?page=1&amp;page_size=1'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("path", [
+        "/api/v1/driver-profiles?page=1&amp;page_size=1",
+        "/api/v1/driver-documents?page=1&amp;page_size=1",
+        "/api/v1/phone-verifications?page=1&amp;page_size=1",
+        "/api/v1/commissions?page=1&amp;page_size=1",
+        "/api/v1/driver-locations?page=1&amp;page_size=1",
+        "/api/v1/chat-messages?page=1&amp;page_size=1",
+        "/api/v1/transactions?page=1&amp;page_size=1",
+    ])
+    async def test_smoke_list_endpoints(client, path):
+        r = await client.get(path)
+&gt;       assert r.status_code in (200, 404)
+E       assert 500 in (200, 404)
+E        +  where 500 = &lt;Response [500 Internal Server Error]&gt;.status_code
+
+tests_api_v1/test_misc_groups.py:16: AssertionError</failure></testcase><testcase classname="tests_api_v1.test_misc_groups" name="test_smoke_list_endpoints[/api/v1/transactions?page=1&amp;page_size=1]" time="0.032" /><testcase classname="tests_api_v1.test_rides" name="test_rides_create_and_status_change" time="0.011"><failure message="AssertionError: {&quot;detail&quot;:&quot;Validation error occurred&quot;,&quot;body&quot;:null}&#10;assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">client = &lt;httpx.AsyncClient object at 0x7fc206c40200&gt;
+
+    @pytest.mark.asyncio
+    async def test_rides_create_and_status_change(client):
+        # Ensure a user exists
+        u = await client.post("/api/v1/users/2001", json={
+            "telegram_id": 2001,
+            "first_name": "Client",
+            "username": "client2001"
+        })
+&gt;       assert u.status_code == 200, u.text
+E       AssertionError: {"detail":"Validation error occurred","body":null}
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+tests_api_v1/test_rides.py:12: AssertionError</failure></testcase><testcase classname="tests_api_v1.test_roles" name="test_roles_crud_flow" time="0.084" /><testcase classname="tests_api_v1.test_users" name="test_users_create_and_list" time="0.013"><failure message="AssertionError: {&quot;detail&quot;:&quot;Validation error occurred&quot;,&quot;body&quot;:null}&#10;assert 422 == 200&#10; +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code">client = &lt;httpx.AsyncClient object at 0x7fc206c48350&gt;
+
+    @pytest.mark.asyncio
+    async def test_users_create_and_list(client):
+        # create or get by telegram id
+        u = await client.post("/api/v1/users/1001", json={
+            "telegram_id": 1001,
+            "first_name": "Vlad",
+            "username": "vlad1001"
+        })
+&gt;       assert u.status_code == 200, u.text
+E       AssertionError: {"detail":"Validation error occurred","body":null}
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422 Unprocessable Entity]&gt;.status_code
+
+tests_api_v1/test_users.py:12: AssertionError</failure></testcase></testsuite></testsuites>

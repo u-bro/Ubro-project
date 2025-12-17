@@ -14,7 +14,7 @@ class UserSchemaCreate(BaseSchema):
 class UserSchema(UserSchemaCreate):
     id: int = Field(..., gt=0)
     created_at: datetime | None = Field(None)
-    last_active: datetime | None = Field(None)
+    last_active_at: datetime | None = Field(None)
     avatar_url: str | None = Field(None)
     user_phone_number: str | None = Field(None, max_length=20)
     lang_code: str | None = Field(None, max_length=5)

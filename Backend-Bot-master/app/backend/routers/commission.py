@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import Request
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
 from app.backend.routers.base import BaseRouter
 from app.crud.commission import commission_crud
 from app.schemas.commission import CommissionSchema, CommissionCreate, CommissionUpdate
@@ -31,8 +32,11 @@ class CommissionRouter(BaseRouter):
     async def update_item(self, request: Request, item_id: int, body: CommissionUpdate) -> CommissionSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> CommissionSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 commission_router = CommissionRouter().router

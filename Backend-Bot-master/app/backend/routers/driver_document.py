@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import Request
 from pydantic import TypeAdapter
+from starlette.responses import JSONResponse
 from app.backend.routers.base import BaseRouter
 from app.crud.driver_document import driver_document_crud
 from app.schemas.driver_document import DriverDocumentSchema, DriverDocumentCreate, DriverDocumentUpdate
@@ -31,8 +32,11 @@ class DriverDocumentRouter(BaseRouter):
     async def update_item(self, request: Request, item_id: int, body: DriverDocumentUpdate) -> DriverDocumentSchema:
         return await self.model_crud.update(request.state.session, item_id, body)
 
-    async def delete_item(self, request: Request, item_id: int) -> DriverDocumentSchema:
-        return await self.model_crud.delete(request.state.session, item_id)
+    async def delete_item(self, request: Request, item_id: int):
+        item = await self.model_crud.delete(request.state.session, item_id)
+        if item is None:
+            return JSONResponse(status_code=404, content={"detail": "Item not found"})
+        return item
 
 
 driver_document_router = DriverDocumentRouter().router

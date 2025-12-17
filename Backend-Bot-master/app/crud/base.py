@@ -52,10 +52,16 @@ class CrudBase(Generic[M, S]):
         return self.schema.model_validate(result) if result else None
 
     async def update(self, session: AsyncSession, id: int, update_obj: S) -> S | None:
+        update_data = update_obj.model_dump(exclude_none=True)
+        
+        # If no fields to update, just return the existing record
+        if not update_data:
+            return await self.get_by_id(session, id)
+        
         stmt = (
             update(self.model)
             .where(self.model.id == id)
-            .values(update_obj.model_dump(exclude_none=True))
+            .values(update_data)
             .returning(self.model)
         )
         result = await self.execute_get_one(session, stmt)

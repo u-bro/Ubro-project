@@ -1,5 +1,6 @@
 from typing import Optional, Any
 from datetime import datetime
+import json
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, text
 from app.crud.base import CrudBase
@@ -44,8 +45,19 @@ class RideCrud(CrudBase[Ride, RideSchema]):
     def __init__(self) -> None:
         super().__init__(Ride, RideSchema)
 
+    def _strip_timezone(self, values: dict) -> dict:
+        """Remove timezone from datetime fields for naive TIMESTAMP columns"""
+        datetime_fields = ['scheduled_at', 'started_at', 'completed_at', 'canceled_at']
+        for field in datetime_fields:
+            if field in values and values[field] is not None:
+                dt = values[field]
+                if isinstance(dt, datetime) and dt.tzinfo is not None:
+                    values[field] = dt.replace(tzinfo=None)
+        return values
+
     async def create(self, session: AsyncSession, create_obj: RideCreate) -> RideSchema | None:
         values = create_obj.model_dump()
+        values = self._strip_timezone(values)
         values.setdefault("status", "requested")
         stmt = insert(Ride).values(values).returning(Ride)
         res = await session.execute(stmt)
@@ -101,15 +113,15 @@ class RideCrud(CrudBase[Ride, RideSchema]):
             upd AS (
                 UPDATE rides r
                 SET
-                    status = :to_status,
+                    status = CAST(:to_status AS VARCHAR),
                     status_reason = :reason,
-                    started_at = CASE WHEN :to_status = 'started' THEN NOW() ELSE r.started_at END,
-                    completed_at = CASE WHEN :to_status = 'completed' THEN NOW() ELSE r.completed_at END,
-                    canceled_at = CASE WHEN :to_status = 'canceled' THEN NOW() ELSE r.canceled_at END,
-                    cancellation_reason = CASE WHEN :to_status = 'canceled' THEN :reason ELSE r.cancellation_reason END,
+                    started_at = CASE WHEN CAST(:to_status AS VARCHAR) = 'started' THEN NOW() ELSE r.started_at END,
+                    completed_at = CASE WHEN CAST(:to_status AS VARCHAR) = 'completed' THEN NOW() ELSE r.completed_at END,
+                    canceled_at = CASE WHEN CAST(:to_status AS VARCHAR) = 'canceled' THEN NOW() ELSE r.canceled_at END,
+                    cancellation_reason = CASE WHEN CAST(:to_status AS VARCHAR) = 'canceled' THEN :reason ELSE r.cancellation_reason END,
                     updated_at = NOW()
                 WHERE r.id = :ride_id
-                  AND (SELECT from_status FROM prev) = ANY(:allowed_from)
+                  AND (SELECT from_status FROM prev) = ANY(CAST(:allowed_from AS VARCHAR[]))
                 RETURNING r.id, r.client_id, r.driver_profile_id, r.status, r.status_reason, r.scheduled_at,
                           r.started_at, r.completed_at, r.canceled_at, r.cancellation_reason,
                           r.pickup_address, r.pickup_lat, r.pickup_lng,
@@ -124,9 +136,9 @@ class RideCrud(CrudBase[Ride, RideSchema]):
                 )
                 SELECT :ride_id,
                        (SELECT from_status FROM prev),
-                       :to_status,
+                       CAST(:to_status AS VARCHAR),
                        :actor_id,
-                       :actor_role,
+                       CAST(:actor_role AS VARCHAR),
                        :reason,
                        CAST(:meta AS JSONB),
                        NOW()
@@ -143,7 +155,7 @@ class RideCrud(CrudBase[Ride, RideSchema]):
             "reason": req.reason,
             "actor_id": req.actor_id,
             "actor_role": role,
-            "meta": req.meta if req.meta is not None else {},
+            "meta": json.dumps(req.meta if req.meta is not None else {}),
             "allowed_from": allowed_from,
         }
 

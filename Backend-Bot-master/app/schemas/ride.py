@@ -1,5 +1,5 @@
 from typing import Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
 
@@ -14,6 +14,14 @@ class RideCreate(BaseModel):
     scheduled_at: Optional[datetime] = None
     expected_fare: Optional[float] = None
     expected_fare_snapshot: Optional[dict[str, Any]] = None
+
+    @field_validator('scheduled_at', mode='before')
+    @classmethod
+    def remove_timezone(cls, v):
+        """Remove timezone info for naive TIMESTAMP columns"""
+        if v is not None and isinstance(v, datetime) and v.tzinfo is not None:
+            return v.replace(tzinfo=None)
+        return v
 
 
 class RideUpdate(BaseModel):
